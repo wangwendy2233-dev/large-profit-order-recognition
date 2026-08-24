@@ -1,0 +1,16 @@
+node_modules/
+imgs/
+logs/
+.ocr.lock
+_patch.json
+*.jpg
+*.jpeg
+*.png
+*.webp
+*.traineddata
+feeds-*.json
+manifest-*.json
+patches-*.json
+dsl-*.json
+patch-first.json
+
