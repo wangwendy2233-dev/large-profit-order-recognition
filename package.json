@@ -4,7 +4,7 @@
   "private": true,
   "description": "OCR share-order images and fill Feishu base fields",
   "scripts": {
-    "once": "node process-pending.js",
+    "once": "node run-hourly.js",
     "hourly-install": "powershell -NoProfile -ExecutionPolicy Bypass -File ./install-hourly-task.ps1",
     "hourly-uninstall": "powershell -NoProfile -ExecutionPolicy Bypass -File ./uninstall-hourly-task.ps1"
   }

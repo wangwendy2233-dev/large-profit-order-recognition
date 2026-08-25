@@ -2,6 +2,7 @@ node_modules/
 imgs/
 logs/
 .ocr.lock
+.env
 _patch.json
 *.jpg
 *.jpeg

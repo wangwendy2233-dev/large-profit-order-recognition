@@ -31,11 +31,9 @@ if (Test-Path $lockFile) {
 try {
   Write-Log "hourly OCR start"
   Set-Location $root
-  & $node "process-pending.js" *>> $logFile
+  & $node "run-hourly.js" *>> $logFile
   $ocrExit = $LASTEXITCODE
-  Write-Log "process-pending exit=$ocrExit"
-  & $node "fill-currency.js" *>> $logFile
-  Write-Log "fill-currency exit=$LASTEXITCODE"
+  Write-Log "run-hourly exit=$ocrExit"
   Write-Log "hourly OCR done"
   if ($ocrExit -ne 0) { exit $ocrExit }
 } finally {

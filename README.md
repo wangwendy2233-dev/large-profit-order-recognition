@@ -8,18 +8,20 @@
 
 表：https://futu.feishu.cn/base/I3hNbrRyYaKOdYs8RjocZ56hnbe?table=tbl6BYuFM3M5eOWD&view=vewjKxVQrh
 
+主路径是 **Cursor 云端每小时任务**（关机也能跑）。本机 Windows 任务可作备份。
+
 ## 环境
 
-- Node.js
-- 已登录的 `lark-cli`（`--as user`）
-- Windows 计划任务（每小时跑一轮）
+云端不使用本机 `lark-cli` 登录，而是用飞书应用凭证调开放接口。配置步骤见 [CLOUD.md](./CLOUD.md)。
+
+本机若已登录 `lark-cli`，不配应用凭证也可以直接跑。
 
 ```powershell
 npm install
-node process-pending.js
+node run-hourly.js
 ```
 
-安装每小时任务：
+安装本机每小时任务：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install-hourly-task.ps1
@@ -33,4 +35,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall-hourly-task.ps1
 
 日志：`logs/hourly.log`
 
-电脑休眠时可唤醒执行；完全关机后本机任务不会运行。
+## 代码仓库
+
+- 云端检出：https://github.com/wangwendy2233-dev/large-profit-order-recognition （`master`）
+- GitLab 备份：https://gitlab.futunn.com/wendyjwang/large-profit-order-recognition

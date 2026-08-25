@@ -1,26 +1,6 @@
-const { spawnSync } = require("child_process");
-const fs = require("fs");
-const path = require("path");
+const { assertReady, listRecords, updateRecord, usesAppAuth } = require("./feishu-bitable");
 
-const BASE = "I3hNbrRyYaKOdYs8RjocZ56hnbe";
-const TABLE = "tbl6BYuFM3M5eOWD";
 const VIEW = "vewjKxVQrh";
-
-function lark(args) {
-  const quoted = args.map((a) => `"${String(a).replace(/"/g, '\\"')}"`).join(" ");
-  const r = spawnSync("lark-cli " + quoted, {
-    encoding: "utf8",
-    shell: true,
-    cwd: __dirname,
-    windowsHide: true,
-    maxBuffer: 20 * 1024 * 1024,
-  });
-  const text = (r.stdout || "").trim();
-  if (!text) throw new Error((r.stderr || "empty").slice(0, 400));
-  const parsed = JSON.parse(text);
-  if (parsed.ok === false) throw new Error(JSON.stringify(parsed.error || parsed).slice(0, 400));
-  return parsed;
-}
 
 function detectCurrency(text) {
   const t = String(text || "");
@@ -36,69 +16,46 @@ function detectCurrency(text) {
 }
 
 function sleep(ms) {
-  const end = Date.now() + ms;
-  while (Date.now() < end) {}
+  return new Promise((r) => setTimeout(r, ms));
 }
 
-let offset = 0;
-let filled = 0;
-while (true) {
-  const parsed = lark([
-    "base",
-    "+record-list",
-    "--as",
-    "user",
-    "--base-token",
-    BASE,
-    "--table-id",
-    TABLE,
-    "--view-id",
-    VIEW,
-    "--format",
-    "json",
-    "--offset",
-    String(offset),
-    "--limit",
-    "50",
-    "--field-id",
-    "fldsdHgXlB",
-    "--field-id",
-    "fldeFFQGVq",
-    "--field-id",
-    "fld9r4341E",
-  ]);
-  const p = parsed.data;
-  for (let i = 0; i < p.record_id_list.length; i++) {
-    const ocr = p.data[i][0];
-    const amt = p.data[i][1];
-    const ccy = p.data[i][2];
-    if (amt != null && amt !== "" && !ccy) {
-      const inferred = detectCurrency(ocr);
-      if (inferred) {
-        const file = path.join(__dirname, "_patch.json");
-        fs.writeFileSync(file, JSON.stringify({ fld9r4341E: inferred }));
-        lark([
-          "base",
-          "+record-upsert",
-          "--as",
-          "user",
-          "--base-token",
-          BASE,
-          "--table-id",
-          TABLE,
-          "--record-id",
-          p.record_id_list[i],
-          "--json",
-          "@./_patch.json",
-        ]);
-        filled += 1;
-        console.log("ccy", p.record_id_list[i], inferred, amt);
-        sleep(700);
+(async () => {
+  assertReady();
+  let pageToken = "";
+  let offset = 0;
+  let filled = 0;
+  while (true) {
+    const page = await listRecords({
+      viewId: VIEW,
+      fieldKeys: ["ocr", "amount", "currency"],
+      pageSize: 50,
+      pageToken,
+      offset,
+    });
+    for (const rec of page.items) {
+      const ocr = rec.fields.ocr;
+      const amt = rec.fields.amount;
+      const ccy = rec.fields.currency;
+      if (amt != null && amt !== "" && !ccy) {
+        const inferred = detectCurrency(ocr);
+        if (inferred) {
+          await updateRecord(rec.record_id, { currency: inferred });
+          filled += 1;
+          console.log("ccy", rec.record_id, inferred, amt);
+          await sleep(700);
+        }
       }
     }
+    offset += page.items.length;
+    console.log("scanned", offset, "has_more", page.has_more);
+    if (!page.has_more) break;
+    if (usesAppAuth()) {
+      if (!page.page_token) throw new Error("list has_more but no page_token");
+      pageToken = page.page_token;
+    }
   }
-  offset += p.record_id_list.length;
-  console.log("scanned", offset, "has_more", p.has_more);
-  if (!p.has_more) break;
-}
-console.log("filled currency", filled);
+  console.log("filled currency", filled);
+})().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

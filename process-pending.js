@@ -5,33 +5,15 @@
 const https = require("https");
 const fs = require("fs");
 const path = require("path");
-const { spawnSync } = require("child_process");
 const { createWorker } = require("tesseract.js");
+const { assertReady, listRecords, updateRecord } = require("./feishu-bitable");
 
-const BASE = "I3hNbrRyYaKOdYs8RjocZ56hnbe";
-const TABLE = "tbl6BYuFM3M5eOWD";
 const PENDING_VIEW = "vewsLlN2YJ";
 const IMG_DIR = path.join(__dirname, "imgs");
 const BATCH = Number(process.env.BATCH || 15);
 const MAX_IMAGES = 6;
 
 fs.mkdirSync(IMG_DIR, { recursive: true });
-
-function lark(args) {
-  const quoted = args.map((a) => `"${String(a).replace(/"/g, '\\"')}"`).join(" ");
-  const r = spawnSync("lark-cli " + quoted, {
-    encoding: "utf8",
-    shell: true,
-    cwd: __dirname,
-    windowsHide: true,
-    maxBuffer: 20 * 1024 * 1024,
-  });
-  const text = (r.stdout || "").trim();
-  if (!text) throw new Error((r.stderr || "empty lark").slice(0, 400));
-  const parsed = JSON.parse(text);
-  if (parsed.ok === false) throw new Error(JSON.stringify(parsed.error || parsed).slice(0, 500));
-  return parsed;
-}
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
@@ -81,50 +63,20 @@ function extractImages(detail) {
   return { title: (data && data.feedTitle) || "", images: [...new Set(images)] };
 }
 
-function listPending(limit) {
-  const parsed = lark([
-    "base",
-    "+record-list",
-    "--base-token",
-    BASE,
-    "--table-id",
-    TABLE,
-    "--view-id",
-    PENDING_VIEW,
-    "--as",
-    "user",
-    "--limit",
-    String(limit),
-    "--format",
-    "json",
-    "--field-id",
-    "flduHDNEtQ",
-  ]);
-  const payload = parsed.data;
-  const items = [];
-  for (let i = 0; i < payload.record_id_list.length; i++) {
-    items.push({ record_id: payload.record_id_list[i], feedId: payload.data[i][0] });
-  }
-  return { items, has_more: Boolean(payload.has_more) };
+async function listPending(limit) {
+  const page = await listRecords({
+    viewId: PENDING_VIEW,
+    fieldKeys: ["feedId"],
+    pageSize: limit,
+  });
+  const items = page.items
+    .map((row) => ({ record_id: row.record_id, feedId: row.fields.feedId }))
+    .filter((row) => row.feedId);
+  return { items, has_more: page.has_more };
 }
 
-function upsert(recordId, fields) {
-  const file = path.join(__dirname, "_patch.json");
-  fs.writeFileSync(file, JSON.stringify(fields), "utf8");
-  lark([
-    "base",
-    "+record-upsert",
-    "--base-token",
-    BASE,
-    "--table-id",
-    TABLE,
-    "--record-id",
-    recordId,
-    "--as",
-    "user",
-    "--json",
-    "@./_patch.json",
-  ]);
+async function upsert(recordId, fields) {
+  await updateRecord(recordId, fields);
 }
 
 function parseNumber(raw) {
@@ -230,11 +182,12 @@ async function processOne(worker, rec) {
 }
 
 (async () => {
+  assertReady();
   const worker = await createWorker("chi_sim+eng");
   let processed = 0;
   try {
     while (true) {
-      const page = listPendingAllPage();
+      const page = await listPendingAllPage();
       if (!page.items.length) {
         console.log("pending empty, done. processed", processed);
         break;
@@ -242,10 +195,10 @@ async function processOne(worker, rec) {
       console.log("pending batch", page.items.length, "has_more", page.has_more);
       for (const rec of page.items) {
         const result = await processOne(worker, rec);
-        const fields = { fldsdHgXlB: result.text };
-        if (result.amount != null) fields.fldeFFQGVq = result.amount;
-        if (result.currency) fields.fld9r4341E = result.currency;
-        upsert(rec.record_id, fields);
+        const fields = { ocr: result.text };
+        if (result.amount != null) fields.amount = result.amount;
+        if (result.currency) fields.currency = result.currency;
+        await upsert(rec.record_id, fields);
         processed += 1;
         console.log(
           processed,
