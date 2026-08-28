@@ -2,8 +2,9 @@ name: Hourly OCR
 
 on:
   schedule:
-    # GitHub cron is UTC. 5 * * * * = every hour at :05 UTC (13:05 / 14:05 ... China time).
-    - cron: "5 * * * *"
+    # UTC minutes = Beijing minutes. Avoid :00-:10 when GitHub often skips jobs.
+    - cron: "17 * * * *"
+    - cron: "47 * * * *"
   workflow_dispatch:
 
 jobs:

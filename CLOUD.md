@@ -26,7 +26,7 @@ Cursor 云端没有本机的 `lark-cli` 登录。脚本用**飞书企业自建�
 2. 左侧点 **Hourly OCR**。
 3. 点 **Run workflow**（选 `master`）立刻试一轮。
 4. 成功时日志里应出现 `feishu auth: app (open api)`，有待填时会打印 `pending batch`。
-5. 定时为每小时一次（GitHub 用 UTC，可能比整点晚几分钟）。
+5. 定时为每小时 **17 分**和 **47 分**各一次（北京时间）。GitHub 在整点附近容易跳过，所以不设在 :05。新工作流前几小时仍可能漏跑，以 Actions 列表里出现 **Scheduled** 为准。
 
 若 Actions 是灰的，先在 Settings → Actions → General 里允许该仓库运行 workflows。
 
