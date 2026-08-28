@@ -187,7 +187,7 @@ function assertReady() {
     return;
   }
   throw new Error(
-    "No Feishu credentials. For Cursor cloud, add Runtime Secrets FEISHU_APP_ID and FEISHU_APP_SECRET, and invite that Feishu app to the Bitable with edit access. Locally you can instead login with lark-cli, or put the same keys in a .env file.",
+    "No Feishu credentials. For GitHub Actions, add repository secrets FEISHU_APP_ID and FEISHU_APP_SECRET, and invite that Feishu app to the Bitable with edit access. Locally you can instead login with lark-cli, or put the same keys in a .env file.",
   );
 }
 

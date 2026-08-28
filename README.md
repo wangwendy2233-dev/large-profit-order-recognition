@@ -8,11 +8,11 @@
 
 表：https://futu.feishu.cn/base/I3hNbrRyYaKOdYs8RjocZ56hnbe?table=tbl6BYuFM3M5eOWD&view=vewjKxVQrh
 
-主路径是 **Cursor 云端每小时任务**（关机也能跑）。本机 Windows 任务可作备份。
+主路径是 **GitHub Actions 每小时直接跑脚本**（关机也能跑）。不要用 Cursor Automations 的 Agent 对话来跑这条任务，它经常标成功但不执行命令。本机 Windows 任务可作备份。
 
 ## 环境
 
-云端不使用本机 `lark-cli` 登录，而是用飞书应用凭证调开放接口。配置步骤见 [CLOUD.md](./CLOUD.md)。
+云端用飞书应用凭证调开放接口。配置步骤见 [CLOUD.md](./CLOUD.md)。
 
 本机若已登录 `lark-cli`，不配应用凭证也可以直接跑。
 

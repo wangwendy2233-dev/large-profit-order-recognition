@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "description": "OCR share-order images and fill Feishu base fields",
+  "dependencies": {
+    "tesseract.js": "^5.1.1"
+  },
   "scripts": {
     "once": "node run-hourly.js",
     "hourly-install": "powershell -NoProfile -ExecutionPolicy Bypass -File ./install-hourly-task.ps1",
