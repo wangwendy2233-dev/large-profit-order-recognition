@@ -1,6 +1,6 @@
 # 云端小时任务怎么跑通
 
-主路径是 **GitHub Actions 每小时直接跑脚本**。不再走 Cursor Automations 里的 Agent 对话：那种方式会标 Succeeded，但经常不执行 `node run-hourly.js`，表格也就填不上。
+主路径是 **GitHub Actions 每天 4 轮直接跑脚本**（北京时间 00:23、06:23、12:23、18:23）。不再走 Cursor Automations 里的 Agent 对话：那种方式会标 Succeeded，但经常不执行 `node run-hourly.js`，表格也就填不上。
 
 Cursor 云端没有本机的 `lark-cli` 登录。脚本用**飞书企业自建应用**调开放接口写多维表格。
 
@@ -26,7 +26,7 @@ Cursor 云端没有本机的 `lark-cli` 登录。脚本用**飞书企业自建�
 2. 左侧点 **Hourly OCR**。
 3. 点 **Run workflow**（选 `master`）立刻试一轮。
 4. 成功时日志里应出现 `feishu auth: app (open api)`，有待填时会打印 `pending batch`。
-5. 定时为每小时 **17 分**和 **47 分**各一次（北京时间）。GitHub 在整点附近容易跳过，所以不设在 :05。新工作流前几小时仍可能漏跑，以 Actions 列表里出现 **Scheduled** 为准。
+5. 定时为北京时间每天 4 次：**00:23、06:23、12:23、18:23**（GitHub cron 用 UTC：`23 16/22/4/10 * * *`）。分钟用 23 以躲开整点高峰。新 schedule 前几小时仍可能漏跑，以 Actions 列表里出现 **Scheduled** 为准。
 
 若 Actions 是灰的，先在 Settings → Actions → General 里允许该仓库运行 workflows。
 
