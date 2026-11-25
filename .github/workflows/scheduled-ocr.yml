@@ -1,4 +1,4 @@
-name: Hourly OCR
+name: Scheduled OCR
 
 on:
   schedule:
