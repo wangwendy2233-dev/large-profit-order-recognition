@@ -8,7 +8,7 @@
 
 表：https://futu.feishu.cn/base/I3hNbrRyYaKOdYs8RjocZ56hnbe?table=tbl6BYuFM3M5eOWD&view=vewjKxVQrh
 
-主路径是 **GitHub Actions 每天 4 轮**（北京时间 00:23、06:23、12:23、18:23，关机也能跑）。不要用 Cursor Automations 的 Agent 对话来跑这条任务，它经常标成功但不执行命令。本机 Windows 任务可作备份。
+主路径是 **GitHub Actions 每天 4 轮**（北京时间 00:23、06:23、12:23、18:23，关机也能跑；工作流名 **Scheduled OCR**）。不要用 Cursor Automations 的 Agent 对话当主路径：未配 `FEISHU_*` 时会空转失败。本机 Windows 任务可作备份。
 
 ## 环境
 
